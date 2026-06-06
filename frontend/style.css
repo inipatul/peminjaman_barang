@@ -1,137 +1,160 @@
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:'Segoe UI',sans-serif;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
 }
 
-body{
- background:#e9eef5;
- padding:30px;
+body {
+  background: #e9eef5;
+  padding: 30px;
 }
 
-.container{
-    max-width:900px;
-    margin:auto;
-    background:white;
-    border:1px solid #d6dde8;
-    padding:25px;
-    border-radius:15px;
-    box-shadow:0 5px 20px rgba(0,0,0,0.1);
+.container {
+  max-width: 900px;
+  margin: auto;
+  background: white;
+  border: 1px solid #d6dde8;
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+.main-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+  margin-top: 20px;
 }
 
-h2{
-    color:#1e293b;
-    margin-bottom:15px;
-    border-left:5px solid #3498db;
-    padding-left:10px;
+.section {
+  background: #f8fafc;
+  padding: 20px;
+  border-radius: 15px;
+  border: 1px solid #dbe4f0;
 }
 
-input{
-    width:100%;
-    padding:12px;
-    margin:8px 0;
-    border:1px solid #ddd;
-    border-radius:8px;
-    outline:none;
+.section h2 {
+  margin-bottom: 15px;
 }
 
-input:focus{
-    border-color:#3498db;
+@media (max-width: 768px) {
+  .main-content {
+    grid-template-columns: 1fr;
+  }
 }
 
-button{
-    padding:10px 16px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-    color:white;
-    font-weight:bold;
-    margin-top:8px;
+h2 {
+  color: #1e293b;
+  margin-bottom: 15px;
+  border-left: 5px solid #3498db;
+  padding-left: 10px;
 }
 
-button:hover{
-    opacity:0.9;
+input {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  outline: none;
 }
 
-.btn-tambah{
-    background:#2563eb;
+input:focus {
+  border-color: #3498db;
 }
 
-.btn-edit{
-    background:#f39c12;
+button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+  font-weight: bold;
+  margin-top: 8px;
 }
 
-.btn-hapus{
-    background:#e74c3c;
+button:hover {
+  opacity: 0.9;
 }
 
-.btn-kembali{
-    background:#27ae60;
+.btn-tambah {
+  background: #2563eb;
 }
 
-ul{
-    list-style:none;
-    margin-top:15px;
+.btn-edit {
+  background: #f39c12;
 }
 
-li{
-    background:#fafafa;
-    border-left:5px solid #3498db;
-    padding:15px;
-    margin-bottom:10px;
-    border-radius:10px;
+.btn-hapus {
+  background: #e74c3c;
 }
 
-hr{
-    margin:25px 0;
-    border:none;
-    border-top:1px solid #ddd;
+.btn-kembali {
+  background: #27ae60;
 }
 
-.status-dipinjam{
-    color:#e74c3c;
-    font-weight:bold;
+ul {
+  list-style: none;
+  margin-top: 15px;
 }
 
-.status-kembali{
-    color:#27ae60;
-    font-weight:bold;
-}
-.stats{
-    display:flex;
-    gap:15px;
-    margin:25px 0;
-    flex-wrap:wrap;
+li {
+  background: #fafafa;
+  border-left: 5px solid #3498db;
+  padding: 15px;
+  margin-bottom: 10px;
+  border-radius: 10px;
 }
 
-.card{
-    flex:1;
-    min-width:200px;
-    padding:20px;
-    border-radius:15px;
-    color:white;
-    text-align:center;
-    box-shadow:0 5px 15px rgba(0,0,0,0.15);
+hr {
+  margin: 25px 0;
+  border: none;
+  border-top: 1px solid #ddd;
 }
 
-.card h3{
-    font-size:32px;
-    margin-bottom:8px;
+.status-dipinjam {
+  color: #e74c3c;
+  font-weight: bold;
 }
 
-.card p{
-    margin:0;
+.status-kembali {
+  color: #27ae60;
+  font-weight: bold;
+}
+.stats {
+  display: flex;
+  gap: 15px;
+  margin: 25px 0;
+  flex-wrap: wrap;
 }
 
-.card-barang{
-    background:linear-gradient(135deg,#2563eb,#3b82f6);
+.card {
+  flex: 1;
+  min-width: 200px;
+  padding: 20px;
+  border-radius: 15px;
+  color: white;
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
 }
 
-.card-pinjam{
-    background:linear-gradient(135deg,#f59e0b,#fbbf24);
+.card h3 {
+  font-size: 32px;
+  margin-bottom: 8px;
 }
 
-.card-kembali{
-    background:linear-gradient(135deg,#16a34a,#22c55e);
+.card p {
+  margin: 0;
+}
+
+.card-barang {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+}
+
+.card-pinjam {
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+}
+
+.card-kembali {
+  background: linear-gradient(135deg, #16a34a, #22c55e);
 }

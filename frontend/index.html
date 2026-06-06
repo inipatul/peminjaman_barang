@@ -1,45 +1,44 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sistem Peminjaman Barang</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Sistem Peminjaman Barang</h1>
+      <p class="subtitle">Aplikasi Inventaris dan Peminjaman Barang</p>
 
-<div class="container">
-
-    <h1>Sistem Peminjaman Barang</h1>
-    <p class="subtitle">Aplikasi Inventaris dan Peminjaman Barang</p>
-
-    <!-- Statistik -->
-    <div class="stats">
-
+      <!-- Statistik -->
+      <div class="stats">
         <div class="card card-barang">
-            <h3 id="totalBarang">0</h3>
-            <p>Total Barang</p>
+          <h3 id="totalBarang">0</h3>
+          <p>Total Barang</p>
         </div>
 
         <div class="card card-pinjam">
-            <h3 id="sedangDipinjam">0</h3>
-            <p>Sedang Dipinjam</p>
+          <h3 id="sedangDipinjam">0</h3>
+          <p>Sedang Dipinjam</p>
         </div>
 
         <div class="card card-kembali">
-            <h3 id="sudahKembali">0</h3>
-            <p>Sudah Dikembalikan</p>
+          <h3 id="sudahKembali">0</h3>
+          <p>Sudah Dikembalikan</p>
         </div>
+      </div>
 
-    </div>
+      <!-- Data Barang -->
+      <div class="section">
+     <div class="main-content">
 
-    <!-- Data Barang -->
     <div class="section">
 
         <h2>📦 Data Barang</h2>
 
         <input id="nama" placeholder="Nama Barang">
-        <input id="stok" type="number" placeholder="Stok">
+        <input id="stok" placeholder="Stok">
         <input id="kondisi" placeholder="Kondisi Barang">
 
         <button class="btn-tambah" onclick="tambah()">
@@ -50,14 +49,13 @@
 
     </div>
 
-    <!-- Peminjaman -->
     <div class="section">
 
-        <h2>📝 Peminjaman Barang</h2>
+        <h2>📝 Peminjaman</h2>
 
         <input id="nama_peminjam" placeholder="Nama Peminjam">
         <input id="barang_pinjam" placeholder="Nama Barang">
-        <input id="jumlah" type="number" placeholder="Jumlah Dipinjam">
+        <input id="jumlah" placeholder="Jumlah Dipinjam">
         <input type="date" id="tgl_pinjam">
 
         <button class="btn-tambah" onclick="pinjam()">
@@ -70,25 +68,22 @@
 
 </div>
 
-<script>
 
-// =======================
-// LOAD BARANG
-// =======================
-function load() {
+    <script>
+      // =======================
+      // LOAD BARANG
+      // =======================
+      function load() {
+        fetch("http://localhost:3000/barang")
+          .then((res) => res.json())
+          .then((data) => {
+            let list = document.getElementById("list");
+            list.innerHTML = "";
 
-    fetch('http://localhost:3000/barang')
-    .then(res => res.json())
-    .then(data => {
+            data.forEach((item) => {
+              let li = document.createElement("li");
 
-        let list = document.getElementById('list');
-        list.innerHTML = "";
-
-        data.forEach(item => {
-
-            let li = document.createElement('li');
-
-            li.innerHTML = `
+              li.innerHTML = `
                 <strong>${item.nama_barang}</strong><br>
                 Stok : ${item.stok}<br>
                 Kondisi : ${item.kondisi}<br><br>
@@ -104,249 +99,187 @@ function load() {
                 </button>
             `;
 
-            list.appendChild(li);
+              list.appendChild(li);
+            });
+          });
+      }
 
-        });
+      // =======================
+      // TAMBAH BARANG
+      // =======================
+      function tambah() {
+        let nama = document.getElementById("nama").value;
+        let stok = document.getElementById("stok").value;
+        let kondisi = document.getElementById("kondisi").value;
 
-    });
-
-}
-
-// =======================
-// TAMBAH BARANG
-// =======================
-function tambah() {
-
-    let nama = document.getElementById('nama').value;
-    let stok = document.getElementById('stok').value;
-    let kondisi = document.getElementById('kondisi').value;
-
-    fetch('http://localhost:3000/tambah', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
+        fetch("http://localhost:3000/tambah", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
             nama,
             stok,
-            kondisi
-        })
-    })
-    .then(() => {
+            kondisi,
+          }),
+        }).then(() => {
+          load();
+          loadStatistik();
+        });
+      }
 
-        load();
-        loadStatistik();
+      // =======================
+      // HAPUS
+      // =======================
+      function hapus(id) {
+        fetch("http://localhost:3000/hapus/" + id, {
+          method: "DELETE",
+        }).then(() => {
+          load();
+          loadStatistik();
+        });
+      }
 
-    });
+      // =======================
+      // EDIT
+      // =======================
+      function edit(id, nama, stok, kondisi) {
+        let namaBaru = prompt("Nama Barang", nama);
+        let stokBaru = prompt("Stok", stok);
+        let kondisiBaru = prompt("Kondisi", kondisi);
 
-}
+        fetch("http://localhost:3000/edit/" + id, {
+          method: "PUT",
 
-// =======================
-// HAPUS
-// =======================
-function hapus(id) {
+          headers: {
+            "Content-Type": "application/json",
+          },
 
-    fetch('http://localhost:3000/hapus/' + id, {
-        method: 'DELETE'
-    })
-    .then(() => {
-
-        load();
-        loadStatistik();
-
-    });
-
-}
-
-// =======================
-// EDIT
-// =======================
-function edit(id, nama, stok, kondisi) {
-
-    let namaBaru = prompt("Nama Barang", nama);
-    let stokBaru = prompt("Stok", stok);
-    let kondisiBaru = prompt("Kondisi", kondisi);
-
-    fetch('http://localhost:3000/edit/' + id, {
-
-        method: 'PUT',
-
-        headers: {
-            'Content-Type': 'application/json'
-        },
-
-        body: JSON.stringify({
+          body: JSON.stringify({
             nama: namaBaru,
             stok: stokBaru,
-            kondisi: kondisiBaru
-        })
+            kondisi: kondisiBaru,
+          }),
+        }).then(() => {
+          load();
+          loadStatistik();
+        });
+      }
 
-    })
-    .then(() => {
+      // =======================
+      // PINJAM
+      // =======================
+      function pinjam() {
+        let nama = document.getElementById("nama_peminjam").value;
+        let barang = document.getElementById("barang_pinjam").value;
+        let jumlah = document.getElementById("jumlah").value;
+        let tgl_pinjam = document.getElementById("tgl_pinjam").value;
 
-        load();
-        loadStatistik();
+        fetch("http://localhost:3000/pinjam", {
+          method: "POST",
 
-    });
+          headers: {
+            "Content-Type": "application/json",
+          },
 
-}
-
-// =======================
-// PINJAM
-// =======================
-function pinjam() {
-
-    let nama = document.getElementById('nama_peminjam').value;
-    let barang = document.getElementById('barang_pinjam').value;
-    let jumlah = document.getElementById('jumlah').value;
-    let tgl_pinjam = document.getElementById('tgl_pinjam').value;
-
-    fetch('http://localhost:3000/pinjam', {
-
-        method: 'POST',
-
-        headers: {
-            'Content-Type': 'application/json'
-        },
-
-        body: JSON.stringify({
+          body: JSON.stringify({
             nama,
             barang,
             jumlah,
-            tgl_pinjam
-        })
+            tgl_pinjam,
+          }),
+        }).then(() => {
+          load();
+          loadPinjam();
+          loadStatistik();
+        });
+      }
 
-    })
-    .then(() => {
+      // =======================
+      // LOAD PEMINJAMAN
+      // =======================
+      function loadPinjam() {
+        fetch("http://localhost:3000/peminjaman")
+          .then((res) => res.json())
+          .then((data) => {
+            let list = document.getElementById("listPinjam");
+            list.innerHTML = "";
 
-        load();
-        loadPinjam();
-        loadStatistik();
+            data.forEach((item) => {
+              let li = document.createElement("li");
 
-    });
-
-}
-
-// =======================
-// LOAD PEMINJAMAN
-// =======================
-function loadPinjam() {
-
-    fetch('http://localhost:3000/peminjaman')
-    .then(res => res.json())
-    .then(data => {
-
-        let list = document.getElementById('listPinjam');
-        list.innerHTML = "";
-
-        data.forEach(item => {
-
-            let li = document.createElement('li');
-
-            li.innerHTML = `
+              li.innerHTML = `
                 <strong>${item.nama_peminjam}</strong><br>
                 Barang : ${item.nama_barang}<br>
                 Jumlah : ${item.jumlah}<br>
                 Tanggal Pinjam : ${item.tanggal_pinjam}<br>
                 Status : <b>${item.status}</b><br>
-                Tanggal Kembali : ${item.tanggal_kembali || '-'}
+                Tanggal Kembali : ${item.tanggal_kembali || "-"}
 
                 <br><br>
 
                 ${
-                    item.status === "dipinjam"
-                    ?
-                    `<button class="btn-kembali"
+                  item.status === "dipinjam"
+                    ? `<button class="btn-kembali"
                     onclick="kembalikan(${item.id})">
                     Kembalikan
                     </button>`
-                    :
-                    ''
+                    : ""
                 }
             `;
 
-            list.appendChild(li);
+              list.appendChild(li);
+            });
+          });
+      }
 
-        });
-
-    });
-
-}
-
-// =======================
-// KEMBALIKAN
-// =======================
-function kembalikan(id) {
-
-    let tgl = prompt("Masukkan tanggal kembali (YYYY-MM-DD)");
+      // =======================
+      // KEMBALIKAN
+      // =======================
+     function kembalikan(id) {
 
     fetch('http://localhost:3000/kembalikan/' + id, {
-
-        method: 'PUT',
-
-        headers: {
-            'Content-Type': 'application/json'
-        },
-
-        body: JSON.stringify({
-            tgl_kembali: tgl
-        })
-
+        method: 'PUT'
     })
     .then(() => {
-
         load();
         loadPinjam();
         loadStatistik();
-
     });
 
 }
 
-// =======================
-// STATISTIK
-// =======================
-function loadStatistik() {
+      // =======================
+      // STATISTIK
+      // =======================
+      function loadStatistik() {
+        fetch("http://localhost:3000/barang")
+          .then((res) => res.json())
+          .then((data) => {
+            document.getElementById("totalBarang").innerText = data.length;
+          });
 
-    fetch('http://localhost:3000/barang')
-    .then(res => res.json())
-    .then(data => {
-
-        document.getElementById('totalBarang').innerText =
-            data.length;
-
-    });
-
-    fetch('http://localhost:3000/peminjaman')
-    .then(res => res.json())
-    .then(data => {
-
-        let dipinjam =
-            data.filter(item =>
-                item.status === "dipinjam"
+        fetch("http://localhost:3000/peminjaman")
+          .then((res) => res.json())
+          .then((data) => {
+            let dipinjam = data.filter(
+              (item) => item.status === "dipinjam",
             ).length;
 
-        let kembali =
-            data.filter(item =>
-                item.status === "dikembalikan"
+            let kembali = data.filter(
+              (item) => item.status === "dikembalikan",
             ).length;
 
-        document.getElementById('sedangDipinjam').innerText =
-            dipinjam;
+            document.getElementById("sedangDipinjam").innerText = dipinjam;
 
-        document.getElementById('sudahKembali').innerText =
-            kembali;
+            document.getElementById("sudahKembali").innerText = kembali;
+          });
+      }
 
-    });
-
-}
-
-// =======================
-load();
-loadPinjam();
-loadStatistik();
-
-</script>
-
-</body>
+      // =======================
+      load();
+      loadPinjam();
+      loadStatistik();
+    </script>
+  </body>
 </html>
