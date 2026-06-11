@@ -5,11 +5,10 @@ const mysql = require("mysql2");
 const cors = require("cors");
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-
-
 
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
@@ -20,10 +19,10 @@ const db = mysql.createConnection({
 
 db.connect((err) => {
   if (err) {
-   
-    console.log(err);
+    console.error("❌ Database Connection Error:", err.message);
+    process.exit(1);
   } else {
-    console.log("Database terhubung");
+    console.log("✅ Database terhubung");
   }
 });
 
@@ -33,11 +32,11 @@ db.connect((err) => {
 app.get("/barang", (req, res) => {
   db.query("SELECT * FROM barang", (err, result) => {
     if (err) {
-      console.log(err);
-      return res.send("Error");
+      console.error(err);
+      return res.status(500).json({ error: "Gagal mengambil data barang" });
     }
 
-    res.json(result);
+    res.status(200).json(result);
   });
 });
 
@@ -47,16 +46,25 @@ app.get("/barang", (req, res) => {
 app.post("/tambah", (req, res) => {
   const { nama, stok, kondisi } = req.body;
 
+  // Validasi input
+  if (!nama || !stok || !kondisi) {
+    return res.status(400).json({ error: "Semua field harus diisi" });
+  }
+
+  if (isNaN(stok) || stok < 0) {
+    return res.status(400).json({ error: "Stok harus berupa angka positif" });
+  }
+
   db.query(
     "INSERT INTO barang (nama_barang, stok, kondisi) VALUES (?, ?, ?)",
     [nama, stok, kondisi],
     (err) => {
       if (err) {
-        console.log(err);
-        return res.send("Gagal tambah");
+        console.error(err);
+        return res.status(500).json({ error: "Gagal tambah barang" });
       }
 
-      res.send("Berhasil tambah");
+      res.status(201).json({ message: "Berhasil tambah barang" });
     },
   );
 });
@@ -68,16 +76,24 @@ app.put("/edit/:id", (req, res) => {
   const id = req.params.id;
   const { nama, stok, kondisi } = req.body;
 
+  if (!nama || !stok || !kondisi) {
+    return res.status(400).json({ error: "Semua field harus diisi" });
+  }
+
+  if (isNaN(stok) || stok < 0) {
+    return res.status(400).json({ error: "Stok harus berupa angka positif" });
+  }
+
   db.query(
     "UPDATE barang SET nama_barang=?, stok=?, kondisi=? WHERE id=?",
     [nama, stok, kondisi, id],
     (err) => {
       if (err) {
-        console.log(err);
-        return res.send("Gagal edit");
+        console.error(err);
+        return res.status(500).json({ error: "Gagal edit barang" });
       }
 
-      res.send("Berhasil edit");
+      res.status(200).json({ message: "Berhasil edit barang" });
     },
   );
 });
@@ -90,11 +106,11 @@ app.delete("/hapus/:id", (req, res) => {
 
   db.query("DELETE FROM barang WHERE id=?", [id], (err) => {
     if (err) {
-      console.log(err);
-      return res.send("Gagal hapus");
+      console.error(err);
+      return res.status(500).json({ error: "Gagal hapus barang" });
     }
 
-    res.send("Berhasil hapus");
+    res.status(200).json({ message: "Berhasil hapus barang" });
   });
 });
 
@@ -104,21 +120,30 @@ app.delete("/hapus/:id", (req, res) => {
 app.post("/pinjam", (req, res) => {
   const { nama, barang, jumlah, tgl_pinjam } = req.body;
 
+  // Validasi input
+  if (!nama || !barang || !jumlah || !tgl_pinjam) {
+    return res.status(400).json({ error: "Semua field harus diisi" });
+  }
+
+  if (isNaN(jumlah) || jumlah <= 0) {
+    return res.status(400).json({ error: "Jumlah harus berupa angka positif" });
+  }
+
   db.query(
     "SELECT stok FROM barang WHERE nama_barang=?",
     [barang],
     (err, result) => {
       if (err) {
-        console.log(err);
-        return res.send("Error");
+        console.error(err);
+        return res.status(500).json({ error: "Gagal cek stok" });
       }
 
       if (result.length === 0) {
-        return res.send("Barang tidak ditemukan");
+        return res.status(404).json({ error: "Barang tidak ditemukan" });
       }
 
       if (result[0].stok < jumlah) {
-        return res.send("Stok tidak cukup");
+        return res.status(400).json({ error: "Stok tidak cukup" });
       }
 
       // kurangi stok
@@ -131,9 +156,15 @@ app.post("/pinjam", (req, res) => {
       db.query(
         "INSERT INTO peminjaman (nama_peminjam, nama_barang, jumlah, tanggal_pinjam, status) VALUES (?, ?, ?, ?, ?)",
         [nama, barang, jumlah, tgl_pinjam, "dipinjam"],
-      );
+        (err) => {
+          if (err) {
+            console.error(err);
+            return res.status(500).json({ error: "Gagal catat peminjaman" });
+          }
 
-      res.send("Berhasil pinjam");
+          res.status(201).json({ message: "Berhasil pinjam barang" });
+        },
+      );
     },
   );
 });
@@ -142,13 +173,13 @@ app.post("/pinjam", (req, res) => {
 // LIHAT DATA PEMINJAMAN
 // =======================
 app.get("/peminjaman", (req, res) => {
-  db.query("SELECT * FROM peminjaman", (err, result) => {
+  db.query("SELECT * FROM peminjaman ORDER BY created_at DESC", (err, result) => {
     if (err) {
-      console.log(err);
-      return res.send("Error");
+      console.error(err);
+      return res.status(500).json({ error: "Gagal mengambil data peminjaman" });
     }
 
-    res.json(result);
+    res.status(200).json(result);
   });
 });
 
@@ -163,18 +194,18 @@ app.put("/kembalikan/:id", (req, res) => {
     [id],
     (err, result) => {
       if (err) {
-        console.log(err);
-        return res.send("Error");
+        console.error(err);
+        return res.status(500).json({ error: "Gagal cek data peminjaman" });
       }
 
       if (result.length === 0) {
-        return res.send("Data tidak ditemukan");
+        return res.status(404).json({ error: "Data peminjaman tidak ditemukan" });
       }
 
       const data = result[0];
 
       if (data.status === "dikembalikan") {
-        return res.send("Barang sudah dikembalikan");
+        return res.status(400).json({ error: "Barang sudah dikembalikan" });
       }
 
       // tambah stok kembali
@@ -189,19 +220,28 @@ app.put("/kembalikan/:id", (req, res) => {
         [id],
         (err) => {
           if (err) {
-            console.log(err);
-            return res.send("Gagal mengembalikan");
+            console.error(err);
+            return res.status(500).json({ error: "Gagal mengembalikan barang" });
           }
 
-          res.send("Barang berhasil dikembalikan");
+          res.status(200).json({ message: "Barang berhasil dikembalikan" });
         },
       );
     },
   );
 });
+
+// =======================
+// ERROR HANDLING MIDDLEWARE
+// =======================
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: "Server error" });
+});
+});
 // =======================
 // JALANKAN SERVER
 // =======================
-app.listen(process.env.PORT || 3000, () => {
-  console.log(`Server jalan di port ${process.env.PORT || 3000}`);
+app.listen(PORT, () => {
+  console.log(`✅ Server jalan di port ${PORT}`);
 });

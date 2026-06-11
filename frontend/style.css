@@ -6,8 +6,9 @@
 }
 
 body {
-  background: #e9eef5;
+  background: linear-gradient(135deg, #e9eef5, #f5e9ff);
   padding: 30px;
+  min-height: 100vh;
 }
 
 .container {
@@ -19,6 +20,17 @@ body {
   border-radius: 15px;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
 }
+
+h1 {
+  color: #1e293b;
+  margin-bottom: 5px;
+}
+
+.subtitle {
+  color: #64748b;
+  margin-bottom: 20px;
+}
+
 .main-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -57,10 +69,13 @@ input {
   border: 1px solid #ddd;
   border-radius: 8px;
   outline: none;
+  font-size: 14px;
+  transition: all 0.3s ease;
 }
 
 input:focus {
   border-color: #3498db;
+  box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
 }
 
 button {
@@ -71,26 +86,50 @@ button {
   color: white;
   font-weight: bold;
   margin-top: 8px;
+  transition: all 0.3s ease;
+  margin-right: 8px;
 }
 
 button:hover {
-  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+button:active {
+  transform: translateY(0);
 }
 
 .btn-tambah {
-  background: #2563eb;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  width: 100%;
+}
+
+.btn-tambah:hover {
+  background: linear-gradient(135deg, #1d4ed8, #2563eb);
 }
 
 .btn-edit {
   background: #f39c12;
 }
 
+.btn-edit:hover {
+  background: #e67e22;
+}
+
 .btn-hapus {
   background: #e74c3c;
 }
 
+.btn-hapus:hover {
+  background: #c0392b;
+}
+
 .btn-kembali {
   background: #27ae60;
+}
+
+.btn-kembali:hover {
+  background: #229954;
 }
 
 ul {
@@ -104,6 +143,12 @@ li {
   padding: 15px;
   margin-bottom: 10px;
   border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+li:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateX(5px);
 }
 
 hr {
@@ -121,6 +166,7 @@ hr {
   color: #27ae60;
   font-weight: bold;
 }
+
 .stats {
   display: flex;
   gap: 15px;
@@ -136,6 +182,12 @@ hr {
   color: white;
   text-align: center;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
 .card h3 {
@@ -145,6 +197,7 @@ hr {
 
 .card p {
   margin: 0;
+  font-size: 14px;
 }
 
 .card-barang {
@@ -157,4 +210,30 @@ hr {
 
 .card-kembali {
   background: linear-gradient(135deg, #16a34a, #22c55e);
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Modal Styling */
+div[style*="position: fixed"][style*="background: white"] {
+  animation: fadeIn 0.3s ease;
 }

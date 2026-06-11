@@ -70,15 +70,79 @@
 
 
     <script>
+      // API URL
+      const API_URL = "http://localhost:3000";
+
+      // =======================
+      // UTILITY - SHOW MESSAGE
+      // =======================
+      function showMessage(message, type = "info") {
+        const messageDiv = document.createElement("div");
+        messageDiv.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          padding: 15px 20px;
+          border-radius: 8px;
+          color: white;
+          font-weight: bold;
+          z-index: 1000;
+          animation: slideIn 0.3s ease;
+        `;
+
+        if (type === "success") {
+          messageDiv.style.background = "#27ae60";
+        } else if (type === "error") {
+          messageDiv.style.background = "#e74c3c";
+        } else {
+          messageDiv.style.background = "#3498db";
+        }
+
+        messageDiv.textContent = message;
+        document.body.appendChild(messageDiv);
+
+        setTimeout(() => messageDiv.remove(), 3000);
+      }
+
+      // =======================
+      // VALIDATE INPUT
+      // =======================
+      function validateInput(fields) {
+        for (let field of fields) {
+          if (!field.value.trim()) {
+            showMessage(`${field.placeholder} tidak boleh kosong`, "error");
+            return false;
+          }
+        }
+        return true;
+      }
+
+      // =======================
+      // CLEAR INPUTS
+      // =======================
+      function clearInputs(...inputIds) {
+        inputIds.forEach(id => {
+          document.getElementById(id).value = "";
+        });
+      }
+
       // =======================
       // LOAD BARANG
       // =======================
       function load() {
-        fetch("http://localhost:3000/barang")
-          .then((res) => res.json())
+        fetch(`${API_URL}/barang`)
+          .then((res) => {
+            if (!res.ok) throw new Error("Gagal mengambil data");
+            return res.json();
+          })
           .then((data) => {
             let list = document.getElementById("list");
             list.innerHTML = "";
+
+            if (data.length === 0) {
+              list.innerHTML = "<li>Tidak ada data barang</li>";
+              return;
+            }
 
             data.forEach((item) => {
               let li = document.createElement("li");
@@ -89,18 +153,22 @@
                 Kondisi : ${item.kondisi}<br><br>
 
                 <button class="btn-edit"
-                onclick="edit(${item.id}, '${item.nama_barang}', ${item.stok}, '${item.kondisi}')">
-                Edit
+                onclick="editBarang(${item.id}, '${item.nama_barang}', ${item.stok}, '${item.kondisi}')">
+                ✏️ Edit
                 </button>
 
                 <button class="btn-hapus"
-                onclick="hapus(${item.id})">
-                Hapus
+                onclick="hapusBarang(${item.id})">
+                🗑️ Hapus
                 </button>
             `;
 
               list.appendChild(li);
             });
+          })
+          .catch(err => {
+            console.error(err);
+            showMessage("Gagal mengambil data barang", "error");
           });
       }
 
@@ -108,112 +176,211 @@
       // TAMBAH BARANG
       // =======================
       function tambah() {
-        let nama = document.getElementById("nama").value;
-        let stok = document.getElementById("stok").value;
-        let kondisi = document.getElementById("kondisi").value;
+        const inputs = [
+          document.getElementById("nama"),
+          document.getElementById("stok"),
+          document.getElementById("kondisi")
+        ];
 
-        fetch("http://localhost:3000/tambah", {
+        if (!validateInput(inputs)) return;
+
+        let nama = inputs[0].value;
+        let stok = inputs[1].value;
+        let kondisi = inputs[2].value;
+
+        fetch(`${API_URL}/tambah`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
             nama,
-            stok,
+            stok: parseInt(stok),
             kondisi,
           }),
-        }).then(() => {
-          load();
-          loadStatistik();
-        });
+        })
+          .then((res) => {
+            if (!res.ok) return res.json().then(e => Promise.reject(e));
+            return res.json();
+          })
+          .then(() => {
+            showMessage("Barang berhasil ditambahkan", "success");
+            clearInputs("nama", "stok", "kondisi");
+            load();
+            loadStatistik();
+          })
+          .catch(err => {
+            showMessage(err.error || "Gagal tambah barang", "error");
+          });
       }
 
       // =======================
-      // HAPUS
+      // HAPUS BARANG
       // =======================
-      function hapus(id) {
-        fetch("http://localhost:3000/hapus/" + id, {
+      function hapusBarang(id) {
+        if (!confirm("Yakin hapus barang ini?")) return;
+
+        fetch(`${API_URL}/hapus/${id}`, {
           method: "DELETE",
-        }).then(() => {
-          load();
-          loadStatistik();
-        });
+        })
+          .then((res) => {
+            if (!res.ok) return res.json().then(e => Promise.reject(e));
+            return res.json();
+          })
+          .then(() => {
+            showMessage("Barang berhasil dihapus", "success");
+            load();
+            loadStatistik();
+          })
+          .catch(err => {
+            showMessage(err.error || "Gagal hapus barang", "error");
+          });
       }
 
       // =======================
-      // EDIT
+      // EDIT BARANG
       // =======================
-      function edit(id, nama, stok, kondisi) {
-        let namaBaru = prompt("Nama Barang", nama);
-        let stokBaru = prompt("Stok", stok);
-        let kondisiBaru = prompt("Kondisi", kondisi);
+      function editBarang(id, nama, stok, kondisi) {
+        const modal = document.createElement("div");
+        modal.style.cssText = `
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0,0,0,0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 999;
+        `;
 
-        fetch("http://localhost:3000/edit/" + id, {
+        modal.innerHTML = `
+          <div style="background: white; padding: 30px; border-radius: 15px; max-width: 400px; width: 90%;">
+            <h3>Edit Barang</h3>
+            <input type="text" id="editNama" value="${nama}" placeholder="Nama Barang">
+            <input type="number" id="editStok" value="${stok}" placeholder="Stok">
+            <input type="text" id="editKondisi" value="${kondisi}" placeholder="Kondisi">
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+              <button class="btn-tambah" style="flex: 1;" onclick="submitEdit(${id})">Simpan</button>
+              <button style="flex: 1; background: #95a5a6;" onclick="this.closest('div').parentElement.remove()">Batal</button>
+            </div>
+          </div>
+        `;
+
+        document.body.appendChild(modal);
+      }
+
+      function submitEdit(id) {
+        const namaBaru = document.getElementById("editNama").value;
+        const stokBaru = document.getElementById("editStok").value;
+        const kondisiBaru = document.getElementById("editKondisi").value;
+
+        if (!namaBaru.trim() || !stokBaru || !kondisiBaru.trim()) {
+          showMessage("Semua field harus diisi", "error");
+          return;
+        }
+
+        fetch(`${API_URL}/edit/${id}`, {
           method: "PUT",
-
           headers: {
             "Content-Type": "application/json",
           },
-
           body: JSON.stringify({
             nama: namaBaru,
-            stok: stokBaru,
+            stok: parseInt(stokBaru),
             kondisi: kondisiBaru,
           }),
-        }).then(() => {
-          load();
-          loadStatistik();
-        });
+        })
+          .then((res) => {
+            if (!res.ok) return res.json().then(e => Promise.reject(e));
+            return res.json();
+          })
+          .then(() => {
+            showMessage("Barang berhasil diperbarui", "success");
+            document.querySelector("div[style*='position: fixed']").remove();
+            load();
+            loadStatistik();
+          })
+          .catch(err => {
+            showMessage(err.error || "Gagal edit barang", "error");
+          });
       }
 
       // =======================
       // PINJAM
       // =======================
       function pinjam() {
-        let nama = document.getElementById("nama_peminjam").value;
-        let barang = document.getElementById("barang_pinjam").value;
-        let jumlah = document.getElementById("jumlah").value;
-        let tgl_pinjam = document.getElementById("tgl_pinjam").value;
+        const inputs = [
+          document.getElementById("nama_peminjam"),
+          document.getElementById("barang_pinjam"),
+          document.getElementById("jumlah"),
+          document.getElementById("tgl_pinjam")
+        ];
 
-        fetch("http://localhost:3000/pinjam", {
+        if (!validateInput(inputs)) return;
+
+        let nama = inputs[0].value;
+        let barang = inputs[1].value;
+        let jumlah = inputs[2].value;
+        let tgl_pinjam = inputs[3].value;
+
+        fetch(`${API_URL}/pinjam`, {
           method: "POST",
-
           headers: {
             "Content-Type": "application/json",
           },
-
           body: JSON.stringify({
             nama,
             barang,
-            jumlah,
+            jumlah: parseInt(jumlah),
             tgl_pinjam,
           }),
-        }).then(() => {
-          load();
-          loadPinjam();
-          loadStatistik();
-        });
+        })
+          .then((res) => {
+            if (!res.ok) return res.json().then(e => Promise.reject(e));
+            return res.json();
+          })
+          .then(() => {
+            showMessage("Peminjaman berhasil dicatat", "success");
+            clearInputs("nama_peminjam", "barang_pinjam", "jumlah", "tgl_pinjam");
+            load();
+            loadPinjam();
+            loadStatistik();
+          })
+          .catch(err => {
+            showMessage(err.error || "Gagal pinjam barang", "error");
+          });
       }
 
       // =======================
       // LOAD PEMINJAMAN
       // =======================
       function loadPinjam() {
-        fetch("http://localhost:3000/peminjaman")
-          .then((res) => res.json())
+        fetch(`${API_URL}/peminjaman`)
+          .then((res) => {
+            if (!res.ok) throw new Error("Gagal mengambil data");
+            return res.json();
+          })
           .then((data) => {
             let list = document.getElementById("listPinjam");
             list.innerHTML = "";
 
+            if (data.length === 0) {
+              list.innerHTML = "<li>Tidak ada data peminjaman</li>";
+              return;
+            }
+
             data.forEach((item) => {
               let li = document.createElement("li");
+              const statusClass = item.status === "dipinjam" ? "status-dipinjam" : "status-kembali";
 
               li.innerHTML = `
                 <strong>${item.nama_peminjam}</strong><br>
                 Barang : ${item.nama_barang}<br>
                 Jumlah : ${item.jumlah}<br>
                 Tanggal Pinjam : ${item.tanggal_pinjam}<br>
-                Status : <b>${item.status}</b><br>
+                Status : <b class="${statusClass}">${item.status}</b><br>
                 Tanggal Kembali : ${item.tanggal_kembali || "-"}
 
                 <br><br>
@@ -222,7 +389,7 @@
                   item.status === "dipinjam"
                     ? `<button class="btn-kembali"
                     onclick="kembalikan(${item.id})">
-                    Kembalikan
+                    ✓ Kembalikan
                     </button>`
                     : ""
                 }
@@ -230,37 +397,56 @@
 
               list.appendChild(li);
             });
+          })
+          .catch(err => {
+            console.error(err);
+            showMessage("Gagal mengambil data peminjaman", "error");
           });
       }
 
       // =======================
       // KEMBALIKAN
       // =======================
-     function kembalikan(id) {
+      function kembalikan(id) {
+        if (!confirm("Yakin kembalikan barang ini?")) return;
 
-    fetch('http://localhost:3000/kembalikan/' + id, {
-        method: 'PUT'
-    })
-    .then(() => {
-        load();
-        loadPinjam();
-        loadStatistik();
-    });
-
-}
+        fetch(`${API_URL}/kembalikan/${id}`, {
+          method: "PUT",
+        })
+          .then((res) => {
+            if (!res.ok) return res.json().then(e => Promise.reject(e));
+            return res.json();
+          })
+          .then(() => {
+            showMessage("Barang berhasil dikembalikan", "success");
+            load();
+            loadPinjam();
+            loadStatistik();
+          })
+          .catch(err => {
+            showMessage(err.error || "Gagal mengembalikan barang", "error");
+          });
+      }
 
       // =======================
       // STATISTIK
       // =======================
       function loadStatistik() {
-        fetch("http://localhost:3000/barang")
-          .then((res) => res.json())
+        fetch(`${API_URL}/barang`)
+          .then((res) => {
+            if (!res.ok) throw new Error("Gagal mengambil data");
+            return res.json();
+          })
           .then((data) => {
             document.getElementById("totalBarang").innerText = data.length;
-          });
+          })
+          .catch(err => console.error(err));
 
-        fetch("http://localhost:3000/peminjaman")
-          .then((res) => res.json())
+        fetch(`${API_URL}/peminjaman`)
+          .then((res) => {
+            if (!res.ok) throw new Error("Gagal mengambil data");
+            return res.json();
+          })
           .then((data) => {
             let dipinjam = data.filter(
               (item) => item.status === "dipinjam",
@@ -271,15 +457,24 @@
             ).length;
 
             document.getElementById("sedangDipinjam").innerText = dipinjam;
-
             document.getElementById("sudahKembali").innerText = kembali;
-          });
+          })
+          .catch(err => console.error(err));
       }
 
       // =======================
-      load();
-      loadPinjam();
-      loadStatistik();
+      // INITIALIZE
+      // =======================
+      document.addEventListener("DOMContentLoaded", () => {
+        load();
+        loadPinjam();
+        loadStatistik();
+
+        // Refresh data setiap 5 detik
+        setInterval(() => {
+          loadStatistik();
+        }, 5000);
+      });
     </script>
   </body>
 </html>
