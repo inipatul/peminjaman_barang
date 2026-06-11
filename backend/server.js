@@ -3,12 +3,16 @@ require("dotenv").config();
 const express = require("express");
 const mysql = require("mysql2");
 const cors = require("cors");
+const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+
+// Serve static files (frontend)
+app.use(express.static(path.join(__dirname, "../frontend")));
 
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
@@ -130,7 +134,7 @@ app.post("/pinjam", (req, res) => {
   }
 
   db.query(
-    "SELECT stok FROM barang WHERE nama_barang=?",
+    "SELECT id, stok FROM barang WHERE nama_barang=?",
     [barang],
     (err, result) => {
       if (err) {
@@ -142,27 +146,37 @@ app.post("/pinjam", (req, res) => {
         return res.status(404).json({ error: "Barang tidak ditemukan" });
       }
 
+      const barangId = result[0].id;
+
       if (result[0].stok < jumlah) {
         return res.status(400).json({ error: "Stok tidak cukup" });
       }
 
       // kurangi stok
-      db.query("UPDATE barang SET stok = stok - ? WHERE nama_barang=?", [
-        jumlah,
-        barang,
-      ]);
-
-      // simpan peminjaman
       db.query(
-        "INSERT INTO peminjaman (nama_peminjam, nama_barang, jumlah, tanggal_pinjam, status) VALUES (?, ?, ?, ?, ?)",
-        [nama, barang, jumlah, tgl_pinjam, "dipinjam"],
+        "UPDATE barang SET stok = stok - ? WHERE id=?",
+        [jumlah, barangId],
         (err) => {
           if (err) {
             console.error(err);
-            return res.status(500).json({ error: "Gagal catat peminjaman" });
+            return res.status(500).json({ error: "Gagal update stok" });
           }
 
-          res.status(201).json({ message: "Berhasil pinjam barang" });
+          // simpan peminjaman
+          db.query(
+            "INSERT INTO peminjaman (nama_peminjam, barang_id, jumlah, tanggal_pinjam, status) VALUES (?, ?, ?, ?, ?)",
+            [nama, barangId, jumlah, tgl_pinjam, "dipinjam"],
+            (err) => {
+              if (err) {
+                console.error(err);
+                return res
+                  .status(500)
+                  .json({ error: "Gagal catat peminjaman" });
+              }
+
+              res.status(201).json({ message: "Berhasil pinjam barang" });
+            },
+          );
         },
       );
     },
@@ -173,14 +187,19 @@ app.post("/pinjam", (req, res) => {
 // LIHAT DATA PEMINJAMAN
 // =======================
 app.get("/peminjaman", (req, res) => {
-  db.query("SELECT * FROM peminjaman ORDER BY created_at DESC", (err, result) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ error: "Gagal mengambil data peminjaman" });
-    }
+  db.query(
+    "SELECT p.*, b.nama_barang FROM peminjaman p LEFT JOIN barang b ON p.barang_id = b.id ORDER BY p.created_at DESC",
+    (err, result) => {
+      if (err) {
+        console.error(err);
+        return res
+          .status(500)
+          .json({ error: "Gagal mengambil data peminjaman" });
+      }
 
-    res.status(200).json(result);
-  });
+      res.status(200).json(result);
+    },
+  );
 });
 
 // =======================
@@ -190,7 +209,7 @@ app.put("/kembalikan/:id", (req, res) => {
   const id = req.params.id;
 
   db.query(
-    "SELECT nama_barang, jumlah, status FROM peminjaman WHERE id=?",
+    "SELECT barang_id, jumlah, status FROM peminjaman WHERE id=?",
     [id],
     (err, result) => {
       if (err) {
@@ -199,7 +218,9 @@ app.put("/kembalikan/:id", (req, res) => {
       }
 
       if (result.length === 0) {
-        return res.status(404).json({ error: "Data peminjaman tidak ditemukan" });
+        return res
+          .status(404)
+          .json({ error: "Data peminjaman tidak ditemukan" });
       }
 
       const data = result[0];
@@ -209,22 +230,30 @@ app.put("/kembalikan/:id", (req, res) => {
       }
 
       // tambah stok kembali
-      db.query("UPDATE barang SET stok = stok + ? WHERE nama_barang=?", [
-        data.jumlah,
-        data.nama_barang,
-      ]);
-
-      // ubah status peminjaman
       db.query(
-        "UPDATE peminjaman SET status='dikembalikan', tanggal_kembali=CURDATE() WHERE id=?",
-        [id],
+        "UPDATE barang SET stok = stok + ? WHERE id=?",
+        [data.jumlah, data.barang_id],
         (err) => {
           if (err) {
             console.error(err);
-            return res.status(500).json({ error: "Gagal mengembalikan barang" });
+            return res.status(500).json({ error: "Gagal update stok" });
           }
 
-          res.status(200).json({ message: "Barang berhasil dikembalikan" });
+          // ubah status peminjaman
+          db.query(
+            "UPDATE peminjaman SET status='dikembalikan', tanggal_kembali=CURDATE() WHERE id=?",
+            [id],
+            (err) => {
+              if (err) {
+                console.error(err);
+                return res
+                  .status(500)
+                  .json({ error: "Gagal mengembalikan barang" });
+              }
+
+              res.status(200).json({ message: "Barang berhasil dikembalikan" });
+            },
+          );
         },
       );
     },
@@ -238,7 +267,7 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: "Server error" });
 });
-});
+
 // =======================
 // JALANKAN SERVER
 // =======================

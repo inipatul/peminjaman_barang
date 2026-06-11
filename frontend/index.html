@@ -70,8 +70,9 @@
 
 
     <script>
-      // API URL
-      const API_URL = "http://localhost:3000";
+      // API URL - Auto-detect based on environment
+      const isDev = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+      const API_URL = isDev ? "http://localhost:3000" : window.location.origin;
 
       // =======================
       // UTILITY - SHOW MESSAGE
@@ -153,7 +154,7 @@
                 Kondisi : ${item.kondisi}<br><br>
 
                 <button class="btn-edit"
-                onclick="editBarang(${item.id}, '${item.nama_barang}', ${item.stok}, '${item.kondisi}')">
+                onclick="editBarang(${item.id}, ${JSON.stringify(item.nama_barang)}, ${item.stok}, ${JSON.stringify(item.kondisi)})">
                 ✏️ Edit
                 </button>
 
@@ -255,19 +256,64 @@
           z-index: 999;
         `;
 
-        modal.innerHTML = `
-          <div style="background: white; padding: 30px; border-radius: 15px; max-width: 400px; width: 90%;">
-            <h3>Edit Barang</h3>
-            <input type="text" id="editNama" value="${nama}" placeholder="Nama Barang">
-            <input type="number" id="editStok" value="${stok}" placeholder="Stok">
-            <input type="text" id="editKondisi" value="${kondisi}" placeholder="Kondisi">
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-              <button class="btn-tambah" style="flex: 1;" onclick="submitEdit(${id})">Simpan</button>
-              <button style="flex: 1; background: #95a5a6;" onclick="this.closest('div').parentElement.remove()">Batal</button>
-            </div>
-          </div>
+        const editDiv = document.createElement("div");
+        editDiv.style.cssText = `
+          background: white;
+          padding: 30px;
+          border-radius: 15px;
+          max-width: 400px;
+          width: 90%;
         `;
 
+        const inputNama = document.createElement("input");
+        inputNama.type = "text";
+        inputNama.id = "editNama";
+        inputNama.value = nama;
+        inputNama.placeholder = "Nama Barang";
+        inputNama.style.cssText = "width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px;";
+
+        const inputStok = document.createElement("input");
+        inputStok.type = "number";
+        inputStok.id = "editStok";
+        inputStok.value = stok;
+        inputStok.placeholder = "Stok";
+        inputStok.style.cssText = "width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px;";
+
+        const inputKondisi = document.createElement("input");
+        inputKondisi.type = "text";
+        inputKondisi.id = "editKondisi";
+        inputKondisi.value = kondisi;
+        inputKondisi.placeholder = "Kondisi";
+        inputKondisi.style.cssText = "width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px;";
+
+        const h3 = document.createElement("h3");
+        h3.textContent = "Edit Barang";
+        h3.style.marginBottom = "15px";
+
+        const btnContainer = document.createElement("div");
+        btnContainer.style.cssText = "display: flex; gap: 10px; margin-top: 20px;";
+
+        const btnSimpan = document.createElement("button");
+        btnSimpan.textContent = "Simpan";
+        btnSimpan.className = "btn-tambah";
+        btnSimpan.style.cssText = "flex: 1;";
+        btnSimpan.onclick = () => submitEdit(id);
+
+        const btnBatal = document.createElement("button");
+        btnBatal.textContent = "Batal";
+        btnBatal.style.cssText = "flex: 1; background: #95a5a6; color: white; padding: 10px; border: none; border-radius: 8px; cursor: pointer;";
+        btnBatal.onclick = () => modal.remove();
+
+        btnContainer.appendChild(btnSimpan);
+        btnContainer.appendChild(btnBatal);
+
+        editDiv.appendChild(h3);
+        editDiv.appendChild(inputNama);
+        editDiv.appendChild(inputStok);
+        editDiv.appendChild(inputKondisi);
+        editDiv.appendChild(btnContainer);
+
+        modal.appendChild(editDiv);
         document.body.appendChild(modal);
       }
 
@@ -298,7 +344,7 @@
           })
           .then(() => {
             showMessage("Barang berhasil diperbarui", "success");
-            document.querySelector("div[style*='position: fixed']").remove();
+            document.querySelector("div[style*='position: fixed'][style*='background: rgba']").remove();
             load();
             loadStatistik();
           })
