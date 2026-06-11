@@ -1,22 +1,22 @@
-# 📦 Sistem Peminjaman Barang
+# Sistem Peminjaman Barang
 
 Aplikasi web untuk mengelola peminjaman dan pengembalian barang dengan database MySQL.
 
-## 🚀 Fitur
+## Fitur
 
-- ✅ Tambah/Edit/Hapus Barang
-- ✅ Catat Peminjaman Barang
-- ✅ Kembalikan Barang
-- ✅ Lihat Statistik Real-time
-- ✅ Responsive Design
+- [OK] Tambah/Edit/Hapus Barang
+- [OK] Catat Peminjaman Barang
+- [OK] Kembalikan Barang
+- [OK] Lihat Statistik Real-time
+- [OK] Responsive Design
 
-## 📋 Requirement
+## Requirement
 
 - Node.js 14+
 - MySQL 5.7+
 - npm atau yarn
 
-## 🔧 Setup
+## Setup
 
 ### 1. Database Setup
 
@@ -38,7 +38,7 @@ npm start
 
 Buka `frontend/index.html` di browser atau gunakan live server
 
-## 📁 Struktur Project
+## Struktur Project
 
 ```
 peminjaman_barang/
@@ -53,7 +53,7 @@ peminjaman_barang/
 └── README.md
 ```
 
-## 🔌 API Endpoints
+## API Endpoints
 
 ### Barang
 
@@ -68,7 +68,7 @@ peminjaman_barang/
 - `POST /pinjam` - Catat peminjaman
 - `PUT /kembalikan/:id` - Kembalikan barang
 
-## ⚙️ Konfigurasi
+## Konfigurasi
 
 Edit file `.env`:
 
@@ -80,7 +80,7 @@ DB_NAME=peminjaman_barang
 PORT=3000
 ```
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 **Koneksi DB Gagal**
 

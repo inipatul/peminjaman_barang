@@ -23,10 +23,10 @@ const db = mysql.createConnection({
 
 db.connect((err) => {
   if (err) {
-    console.error("❌ Database Connection Error:", err.message);
+    console.error("[ERROR] Database Connection Error:", err.message);
     process.exit(1);
   } else {
-    console.log("✅ Database terhubung");
+    console.log("[OK] Database terhubung");
   }
 });
 
@@ -272,5 +272,5 @@ app.use((err, req, res, next) => {
 // JALANKAN SERVER
 // =======================
 app.listen(PORT, () => {
-  console.log(`✅ Server jalan di port ${PORT}`);
+  console.log(`[OK] Server jalan di port ${PORT}`);
 });

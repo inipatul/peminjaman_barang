@@ -35,7 +35,7 @@
 
     <div class="section">
 
-        <h2>📦 Data Barang</h2>
+        <h2> Data Barang</h2>
 
         <input id="nama" placeholder="Nama Barang">
         <input id="stok" placeholder="Stok">
@@ -51,7 +51,7 @@
 
     <div class="section">
 
-        <h2>📝 Peminjaman</h2>
+        <h2> Peminjaman</h2>
 
         <input id="nama_peminjam" placeholder="Nama Peminjam">
         <input id="barang_pinjam" placeholder="Nama Barang">
@@ -155,12 +155,12 @@
 
                 <button class="btn-edit"
                 onclick="editBarang(${item.id}, ${JSON.stringify(item.nama_barang)}, ${item.stok}, ${JSON.stringify(item.kondisi)})">
-                ✏️ Edit
+                [Edit]
                 </button>
 
                 <button class="btn-hapus"
                 onclick="hapusBarang(${item.id})">
-                🗑️ Hapus
+                [Hapus]
                 </button>
             `;
 
@@ -435,7 +435,7 @@
                   item.status === "dipinjam"
                     ? `<button class="btn-kembali"
                     onclick="kembalikan(${item.id})">
-                    ✓ Kembalikan
+                    [Kembalikan]
                     </button>`
                     : ""
                 }
