@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Serve static files (frontend)
+// Frontend
 app.use(express.static(path.join(__dirname, "../frontend")));
 
 const db = mysql.createConnection({
@@ -23,11 +23,11 @@ const db = mysql.createConnection({
 
 db.connect((err) => {
   if (err) {
-    console.error("[ERROR] Database Connection Error:", err.message);
+    console.error("[ERROR] Database:", err.message);
     process.exit(1);
-  } else {
-    console.log("[OK] Database terhubung");
   }
+
+  console.log("[OK] Database terhubung");
 });
 
 // =======================
@@ -37,10 +37,10 @@ app.get("/barang", (req, res) => {
   db.query("SELECT * FROM barang", (err, result) => {
     if (err) {
       console.error(err);
-      return res.status(500).json({ error: "Gagal mengambil data barang" });
+      return res.status(500).json({ error: err.message });
     }
 
-    res.status(200).json(result);
+    res.json(result);
   });
 });
 
@@ -50,13 +50,10 @@ app.get("/barang", (req, res) => {
 app.post("/tambah", (req, res) => {
   const { nama, stok, kondisi } = req.body;
 
-  // Validasi input
-  if (!nama || !stok || !kondisi) {
-    return res.status(400).json({ error: "Semua field harus diisi" });
-  }
-
-  if (isNaN(stok) || stok < 0) {
-    return res.status(400).json({ error: "Stok harus berupa angka positif" });
+  if (!nama || stok === undefined || !kondisi) {
+    return res.status(400).json({
+      error: "Semua field harus diisi",
+    });
   }
 
   db.query(
@@ -65,11 +62,15 @@ app.post("/tambah", (req, res) => {
     (err) => {
       if (err) {
         console.error(err);
-        return res.status(500).json({ error: "Gagal tambah barang" });
+        return res.status(500).json({
+          error: err.message,
+        });
       }
 
-      res.status(201).json({ message: "Berhasil tambah barang" });
-    },
+      res.status(201).json({
+        message: "Barang berhasil ditambahkan",
+      });
+    }
   );
 });
 
@@ -77,16 +78,8 @@ app.post("/tambah", (req, res) => {
 // EDIT BARANG
 // =======================
 app.put("/edit/:id", (req, res) => {
-  const id = req.params.id;
+  const { id } = req.params;
   const { nama, stok, kondisi } = req.body;
-
-  if (!nama || !stok || !kondisi) {
-    return res.status(400).json({ error: "Semua field harus diisi" });
-  }
-
-  if (isNaN(stok) || stok < 0) {
-    return res.status(400).json({ error: "Stok harus berupa angka positif" });
-  }
 
   db.query(
     "UPDATE barang SET nama_barang=?, stok=?, kondisi=? WHERE id=?",
@@ -94,11 +87,15 @@ app.put("/edit/:id", (req, res) => {
     (err) => {
       if (err) {
         console.error(err);
-        return res.status(500).json({ error: "Gagal edit barang" });
+        return res.status(500).json({
+          error: err.message,
+        });
       }
 
-      res.status(200).json({ message: "Berhasil edit barang" });
-    },
+      res.json({
+        message: "Barang berhasil diperbarui",
+      });
+    }
   );
 });
 
@@ -106,16 +103,24 @@ app.put("/edit/:id", (req, res) => {
 // HAPUS BARANG
 // =======================
 app.delete("/hapus/:id", (req, res) => {
-  const id = req.params.id;
+  const { id } = req.params;
 
-  db.query("DELETE FROM barang WHERE id=?", [id], (err) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ error: "Gagal hapus barang" });
+  db.query(
+    "DELETE FROM barang WHERE id=?",
+    [id],
+    (err) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({
+          error: err.message,
+        });
+      }
+
+      res.json({
+        message: "Barang berhasil dihapus",
+      });
     }
-
-    res.status(200).json({ message: "Berhasil hapus barang" });
-  });
+  );
 });
 
 // =======================
@@ -124,81 +129,96 @@ app.delete("/hapus/:id", (req, res) => {
 app.post("/pinjam", (req, res) => {
   const { nama, barang, jumlah, tgl_pinjam } = req.body;
 
-  // Validasi input
   if (!nama || !barang || !jumlah || !tgl_pinjam) {
-    return res.status(400).json({ error: "Semua field harus diisi" });
-  }
-
-  if (isNaN(jumlah) || jumlah <= 0) {
-    return res.status(400).json({ error: "Jumlah harus berupa angka positif" });
+    return res.status(400).json({
+      error: "Semua field harus diisi",
+    });
   }
 
   db.query(
-    "SELECT id, stok FROM barang WHERE nama_barang=?",
+    "SELECT stok FROM barang WHERE nama_barang=?",
     [barang],
     (err, result) => {
       if (err) {
         console.error(err);
-        return res.status(500).json({ error: "Gagal cek stok" });
+        return res.status(500).json({
+          error: err.message,
+        });
       }
 
       if (result.length === 0) {
-        return res.status(404).json({ error: "Barang tidak ditemukan" });
+        return res.status(404).json({
+          error: "Barang tidak ditemukan",
+        });
       }
 
-      const barangId = result[0].id;
+      const stok = result[0].stok;
 
-      if (result[0].stok < jumlah) {
-        return res.status(400).json({ error: "Stok tidak cukup" });
+      if (stok < jumlah) {
+        return res.status(400).json({
+          error: "Stok tidak cukup",
+        });
       }
 
       // kurangi stok
       db.query(
-        "UPDATE barang SET stok = stok - ? WHERE id=?",
-        [jumlah, barangId],
+        "UPDATE barang SET stok = stok - ? WHERE nama_barang=?",
+        [jumlah, barang],
         (err) => {
           if (err) {
             console.error(err);
-            return res.status(500).json({ error: "Gagal update stok" });
+            return res.status(500).json({
+              error: err.message,
+            });
           }
 
           // simpan peminjaman
           db.query(
-            "INSERT INTO peminjaman (nama_peminjam, barang_id, jumlah, tanggal_pinjam, status) VALUES (?, ?, ?, ?, ?)",
-            [nama, barangId, jumlah, tgl_pinjam, "dipinjam"],
+            `INSERT INTO peminjaman
+            (nama_peminjam, nama_barang, jumlah, tanggal_pinjam, status)
+            VALUES (?, ?, ?, ?, ?)`,
+            [
+              nama,
+              barang,
+              jumlah,
+              tgl_pinjam,
+              "dipinjam",
+            ],
             (err) => {
               if (err) {
                 console.error(err);
-                return res
-                  .status(500)
-                  .json({ error: "Gagal catat peminjaman" });
+                return res.status(500).json({
+                  error: err.message,
+                });
               }
 
-              res.status(201).json({ message: "Berhasil pinjam barang" });
-            },
+              res.status(201).json({
+                message: "Peminjaman berhasil",
+              });
+            }
           );
-        },
+        }
       );
-    },
+    }
   );
 });
 
 // =======================
-// LIHAT DATA PEMINJAMAN
+// DATA PEMINJAMAN
 // =======================
 app.get("/peminjaman", (req, res) => {
   db.query(
-    "SELECT p.*, b.nama_barang FROM peminjaman p LEFT JOIN barang b ON p.barang_id = b.id ORDER BY p.created_at DESC",
+    "SELECT * FROM peminjaman ORDER BY id DESC",
     (err, result) => {
       if (err) {
         console.error(err);
-        return res
-          .status(500)
-          .json({ error: "Gagal mengambil data peminjaman" });
+        return res.status(500).json({
+          error: err.message,
+        });
       }
 
-      res.status(200).json(result);
-    },
+      res.json(result);
+    }
   );
 });
 
@@ -206,71 +226,84 @@ app.get("/peminjaman", (req, res) => {
 // KEMBALIKAN BARANG
 // =======================
 app.put("/kembalikan/:id", (req, res) => {
-  const id = req.params.id;
+  const { id } = req.params;
 
   db.query(
-    "SELECT barang_id, jumlah, status FROM peminjaman WHERE id=?",
+    "SELECT * FROM peminjaman WHERE id=?",
     [id],
     (err, result) => {
       if (err) {
         console.error(err);
-        return res.status(500).json({ error: "Gagal cek data peminjaman" });
+        return res.status(500).json({
+          error: err.message,
+        });
       }
 
       if (result.length === 0) {
-        return res
-          .status(404)
-          .json({ error: "Data peminjaman tidak ditemukan" });
+        return res.status(404).json({
+          error: "Data tidak ditemukan",
+        });
       }
 
       const data = result[0];
 
       if (data.status === "dikembalikan") {
-        return res.status(400).json({ error: "Barang sudah dikembalikan" });
+        return res.status(400).json({
+          error: "Barang sudah dikembalikan",
+        });
       }
 
-      // tambah stok kembali
+      // kembalikan stok
       db.query(
-        "UPDATE barang SET stok = stok + ? WHERE id=?",
-        [data.jumlah, data.barang_id],
+        "UPDATE barang SET stok = stok + ? WHERE nama_barang=?",
+        [data.jumlah, data.nama_barang],
         (err) => {
           if (err) {
             console.error(err);
-            return res.status(500).json({ error: "Gagal update stok" });
+            return res.status(500).json({
+              error: err.message,
+            });
           }
 
-          // ubah status peminjaman
           db.query(
-            "UPDATE peminjaman SET status='dikembalikan', tanggal_kembali=CURDATE() WHERE id=?",
+            `UPDATE peminjaman
+             SET status='dikembalikan',
+                 tanggal_kembali=CURDATE()
+             WHERE id=?`,
             [id],
             (err) => {
               if (err) {
                 console.error(err);
-                return res
-                  .status(500)
-                  .json({ error: "Gagal mengembalikan barang" });
+                return res.status(500).json({
+                  error: err.message,
+                });
               }
 
-              res.status(200).json({ message: "Barang berhasil dikembalikan" });
-            },
+              res.json({
+                message: "Barang berhasil dikembalikan",
+              });
+            }
           );
-        },
+        }
       );
-    },
+    }
   );
 });
 
 // =======================
-// ERROR HANDLING MIDDLEWARE
+// ERROR HANDLER
 // =======================
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ error: "Server error" });
+
+  res.status(500).json({
+    error: err.message,
+  });
 });
 
 // =======================
-// JALANKAN SERVER
+// START SERVER
 // =======================
 app.listen(PORT, () => {
-  console.log(`[OK] Server jalan di port ${PORT}`);
+  console.log(`[OK] Server berjalan di port ${PORT}`);
 });
