@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const express = require("express");
 const mysql = require("mysql2");
 const cors = require("cors");
@@ -7,15 +9,18 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+
+
 const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "peminjaman_db",
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
 });
 
 db.connect((err) => {
   if (err) {
+   
     console.log(err);
   } else {
     console.log("Database terhubung");
@@ -197,6 +202,6 @@ app.put("/kembalikan/:id", (req, res) => {
 // =======================
 // JALANKAN SERVER
 // =======================
-app.listen(3000, () => {
-  console.log("Server jalan di http://localhost:3000");
+app.listen(process.env.PORT || 3000, () => {
+  console.log(`Server jalan di port ${process.env.PORT || 3000}`);
 });
