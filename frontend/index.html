@@ -131,9 +131,10 @@
       // LOAD BARANG
       // =======================
       function load() {
+        console.log("Loading barang from:", `${API_URL}/barang`);
         fetch(`${API_URL}/barang`)
           .then((res) => {
-            if (!res.ok) throw new Error("Gagal mengambil data");
+            if (!res.ok) throw new Error(`API Error ${res.status}: ${res.statusText}`);
             return res.json();
           })
           .then((data) => {
@@ -168,8 +169,8 @@
             });
           })
           .catch(err => {
-            console.error(err);
-            showMessage("Gagal mengambil data barang", "error");
+            console.error("Error loading barang:", err);
+            showMessage(`Gagal mengambil data barang: ${err.message}`, "error");
           });
       }
 
@@ -403,9 +404,10 @@
       // LOAD PEMINJAMAN
       // =======================
       function loadPinjam() {
+        console.log("Loading peminjaman from:", `${API_URL}/peminjaman`);
         fetch(`${API_URL}/peminjaman`)
           .then((res) => {
-            if (!res.ok) throw new Error("Gagal mengambil data");
+            if (!res.ok) throw new Error(`API Error ${res.status}: ${res.statusText}`);
             return res.json();
           })
           .then((data) => {
@@ -445,8 +447,8 @@
             });
           })
           .catch(err => {
-            console.error(err);
-            showMessage("Gagal mengambil data peminjaman", "error");
+            console.error("Error loading peminjaman:", err);
+            showMessage(`Gagal mengambil data peminjaman: ${err.message}`, "error");
           });
       }
 
@@ -480,17 +482,17 @@
       function loadStatistik() {
         fetch(`${API_URL}/barang`)
           .then((res) => {
-            if (!res.ok) throw new Error("Gagal mengambil data");
+            if (!res.ok) throw new Error(`API Error ${res.status}: ${res.statusText}`);
             return res.json();
           })
           .then((data) => {
             document.getElementById("totalBarang").innerText = data.length;
           })
-          .catch(err => console.error(err));
+          .catch(err => console.error("Error loading statistik barang:", err));
 
         fetch(`${API_URL}/peminjaman`)
           .then((res) => {
-            if (!res.ok) throw new Error("Gagal mengambil data");
+            if (!res.ok) throw new Error(`API Error ${res.status}: ${res.statusText}`);
             return res.json();
           })
           .then((data) => {
@@ -512,6 +514,10 @@
       // INITIALIZE
       // =======================
       document.addEventListener("DOMContentLoaded", () => {
+        console.log("=== App Started ===");
+        console.log("Hostname:", window.location.hostname);
+        console.log("API URL:", API_URL);
+        console.log("=====================");
         load();
         loadPinjam();
         loadStatistik();
