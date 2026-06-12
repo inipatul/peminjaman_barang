@@ -156,7 +156,7 @@ app.post("/pinjam", (req, res) => {
   }
 
   db.query(
-    "SELECT stok FROM barang WHERE nama_barang=?",
+    "SELECT id, stok FROM barang WHERE nama_barang=?",
     [barang],
     (err, result) => {
       if (err) {
@@ -173,6 +173,7 @@ app.post("/pinjam", (req, res) => {
       }
 
       const stok = result[0].stok;
+      const barangId = result[0].id;
 
       if (stok < jumlah) {
         return res.status(400).json({
@@ -221,14 +222,18 @@ app.post("/pinjam", (req, res) => {
 // DATA PEMINJAMAN
 // =======================
 app.get("/peminjaman", (req, res) => {
-  db.query("SELECT * FROM peminjaman ORDER BY id DESC", (err, result) => {
+  db.query(`
+    SELECT p.*, b.nama_barang 
+    FROM peminjaman p 
+    JOIN barang b ON p.barang_id = b.id 
+    ORDER BY p.id DESC
+  `, (err, result) => {
     if (err) {
       console.error(err);
       return res.status(500).json({
         error: err.message,
       });
     }
-
     res.json(result);
   });
 });
@@ -263,8 +268,8 @@ app.put("/kembalikan/:id", (req, res) => {
 
     // kembalikan stok
     db.query(
-      "UPDATE barang SET stok = stok + ? WHERE nama_barang=?",
-      [data.jumlah, data.nama_barang],
+      "UPDATE barang SET stok = stok + ? WHERE id=?",
+      [data.jumlah, data.nama_barang_id],
       (err) => {
         if (err) {
           console.error(err);
