@@ -184,7 +184,7 @@ app.post("/pinjam", (req, res) => {
       // kurangi stok
       db.query(
         "UPDATE barang SET stok = stok - ? WHERE id=?",
-        [jumlah, barang],
+        [jumlah, barangId],
         (err) => {
           if (err) {
             console.error(err);
@@ -198,7 +198,7 @@ app.post("/pinjam", (req, res) => {
             `INSERT INTO peminjaman
             (nama_peminjam, barang_id, jumlah, tanggal_pinjam, status)
             VALUES (?, ?, ?, ?, ?)`,
-            [nama, barang, jumlah, tgl_pinjam, "dipinjam"],
+            [nama, barangId, jumlah, tgl_pinjam, "dipinjam"],
             (err) => {
               if (err) {
                 console.error(err);
