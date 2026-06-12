@@ -269,7 +269,7 @@ app.put("/kembalikan/:id", (req, res) => {
     // kembalikan stok
     db.query(
       "UPDATE barang SET stok = stok + ? WHERE id=?",
-      [data.jumlah, data.nama_barang_id],
+      [data.jumlah, data.barang_id],
       (err) => {
         if (err) {
           console.error(err);
