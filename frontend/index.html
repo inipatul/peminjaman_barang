@@ -403,6 +403,15 @@
       // =======================
       // LOAD PEMINJAMAN
       // =======================
+function formatTanggal(tgl) {
+  if (!tgl) return "-";
+  return new Date(tgl).toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric"
+  });
+}
+
       function loadPinjam() {
         console.log("Loading peminjaman from:", `${API_URL}/peminjaman`);
         fetch(`${API_URL}/peminjaman`)
@@ -427,9 +436,9 @@
                 <strong>${item.nama_peminjam}</strong><br>
                 Barang : ${item.nama_barang}<br>
                 Jumlah : ${item.jumlah}<br>
-                Tanggal Pinjam : ${item.tanggal_pinjam}<br>
+                Tanggal Pinjam : ${formatTanggal(item.tanggal_pinjam)}<br>
                 Status : <b class="${statusClass}">${item.status}</b><br>
-                Tanggal Kembali : ${item.tanggal_kembali || "-"}
+                Tanggal Kembali : ${formatTanggal(item.tanggal_kembali)}
 
                 <br><br>
 
