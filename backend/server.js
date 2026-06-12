@@ -14,26 +14,44 @@ app.use(express.json());
 // Frontend
 app.use(express.static(path.join(__dirname, "../frontend")));
 
-const db = mysql.createPool({
-  host: process.env.MYSQLHOST,
-  user: process.env.MYSQLUSER,
-  password: process.env.MYSQLPASSWORD,
-  database: process.env.MYSQL_DATABASE,
-  port: process.env.MYSQLPORT,
-
+const db = mysql.createConnection({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT || 3306,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
 });
 
-db.getConnection((err, connection) => {
-  if (err) {
-    console.error("[ERROR] Database:", err.message);
-    process.exit(1);
-  }
+function handleConnection() {
+  db.connect((err) => {
+    if (err) {
+      console.error("[ERROR] Database Connection Error:", err.message);
+      // Retry connection after 2 seconds
+      setTimeout(handleConnection, 2000);
+      return;
+    }
 
-  console.log("[OK] Database terhubung");
-  connection.release();
+    console.log("[OK] Database terhubung");
+  });
+}
+
+handleConnection();
+
+// Handle connection errors
+db.on("error", (err) => {
+  console.error("[ERROR] Database Error:", err);
+  if (err.code === "PROTOCOL_CONNECTION_LOST") {
+    handleConnection();
+  }
+  if (err.code === "PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR") {
+    handleConnection();
+  }
+  if (err.code === "PROTOCOL_ENQUEUE_AFTER_QUIT") {
+    handleConnection();
+  }
 });
 
 // =======================
