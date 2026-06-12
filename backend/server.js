@@ -94,7 +94,7 @@ app.post("/tambah", (req, res) => {
       res.status(201).json({
         message: "Barang berhasil ditambahkan",
       });
-    }
+    },
   );
 });
 
@@ -119,7 +119,7 @@ app.put("/edit/:id", (req, res) => {
       res.json({
         message: "Barang berhasil diperbarui",
       });
-    }
+    },
   );
 });
 
@@ -129,22 +129,18 @@ app.put("/edit/:id", (req, res) => {
 app.delete("/hapus/:id", (req, res) => {
   const { id } = req.params;
 
-  db.query(
-    "DELETE FROM barang WHERE id=?",
-    [id],
-    (err) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({
-          error: err.message,
-        });
-      }
-
-      res.json({
-        message: "Barang berhasil dihapus",
+  db.query("DELETE FROM barang WHERE id=?", [id], (err) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({
+        error: err.message,
       });
     }
-  );
+
+    res.json({
+      message: "Barang berhasil dihapus",
+    });
+  });
 });
 
 // =======================
@@ -186,7 +182,7 @@ app.post("/pinjam", (req, res) => {
 
       // kurangi stok
       db.query(
-        "UPDATE barang SET stok = stok - ? WHERE nama_barang=?",
+        "UPDATE barang SET stok = stok - ? WHERE id=?",
         [jumlah, barang],
         (err) => {
           if (err) {
@@ -199,15 +195,9 @@ app.post("/pinjam", (req, res) => {
           // simpan peminjaman
           db.query(
             `INSERT INTO peminjaman
-            (nama_peminjam, nama_barang, jumlah, tanggal_pinjam, status)
+            (nama_peminjam, barang_id, jumlah, tanggal_pinjam, status)
             VALUES (?, ?, ?, ?, ?)`,
-            [
-              nama,
-              barang,
-              jumlah,
-              tgl_pinjam,
-              "dipinjam",
-            ],
+            [nama, barang, jumlah, tgl_pinjam, "dipinjam"],
             (err) => {
               if (err) {
                 console.error(err);
@@ -219,11 +209,11 @@ app.post("/pinjam", (req, res) => {
               res.status(201).json({
                 message: "Peminjaman berhasil",
               });
-            }
+            },
           );
-        }
+        },
       );
-    }
+    },
   );
 });
 
@@ -231,19 +221,16 @@ app.post("/pinjam", (req, res) => {
 // DATA PEMINJAMAN
 // =======================
 app.get("/peminjaman", (req, res) => {
-  db.query(
-    "SELECT * FROM peminjaman ORDER BY id DESC",
-    (err, result) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({
-          error: err.message,
-        });
-      }
-
-      res.json(result);
+  db.query("SELECT * FROM peminjaman ORDER BY id DESC", (err, result) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({
+        error: err.message,
+      });
     }
-  );
+
+    res.json(result);
+  });
 });
 
 // =======================
@@ -252,66 +239,62 @@ app.get("/peminjaman", (req, res) => {
 app.put("/kembalikan/:id", (req, res) => {
   const { id } = req.params;
 
-  db.query(
-    "SELECT * FROM peminjaman WHERE id=?",
-    [id],
-    (err, result) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({
-          error: err.message,
-        });
-      }
+  db.query("SELECT * FROM peminjaman WHERE id=?", [id], (err, result) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({
+        error: err.message,
+      });
+    }
 
-      if (result.length === 0) {
-        return res.status(404).json({
-          error: "Data tidak ditemukan",
-        });
-      }
+    if (result.length === 0) {
+      return res.status(404).json({
+        error: "Data tidak ditemukan",
+      });
+    }
 
-      const data = result[0];
+    const data = result[0];
 
-      if (data.status === "dikembalikan") {
-        return res.status(400).json({
-          error: "Barang sudah dikembalikan",
-        });
-      }
+    if (data.status === "dikembalikan") {
+      return res.status(400).json({
+        error: "Barang sudah dikembalikan",
+      });
+    }
 
-      // kembalikan stok
-      db.query(
-        "UPDATE barang SET stok = stok + ? WHERE nama_barang=?",
-        [data.jumlah, data.nama_barang],
-        (err) => {
-          if (err) {
-            console.error(err);
-            return res.status(500).json({
-              error: err.message,
-            });
-          }
+    // kembalikan stok
+    db.query(
+      "UPDATE barang SET stok = stok + ? WHERE nama_barang=?",
+      [data.jumlah, data.nama_barang],
+      (err) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({
+            error: err.message,
+          });
+        }
 
-          db.query(
-            `UPDATE peminjaman
+        db.query(
+          `UPDATE peminjaman
              SET status='dikembalikan',
                  tanggal_kembali=CURDATE()
              WHERE id=?`,
-            [id],
-            (err) => {
-              if (err) {
-                console.error(err);
-                return res.status(500).json({
-                  error: err.message,
-                });
-              }
-
-              res.json({
-                message: "Barang berhasil dikembalikan",
+          [id],
+          (err) => {
+            if (err) {
+              console.error(err);
+              return res.status(500).json({
+                error: err.message,
               });
             }
-          );
-        }
-      );
-    }
-  );
+
+            res.json({
+              message: "Barang berhasil dikembalikan",
+            });
+          },
+        );
+      },
+    );
+  });
 });
 
 // =======================
