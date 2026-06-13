@@ -130,16 +130,21 @@ app.put("/edit/:id", (req, res) => {
 app.delete("/hapus/:id", (req, res) => {
   const { id } = req.params;
 
-  db.query("DELETE FROM barang WHERE id=?", [id], (err) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({
-        error: err.message,
-      });
+  // STEP 1: Hapus dulu semua peminjaman terkait
+  db.query("DELETE FROM peminjaman WHERE barang_id = ?", [id], (err1) => {
+    if (err1) {
+      console.error(err1);
+      return res.status(500).json({ error: err1.message });
     }
 
-    res.json({
-      message: "Barang berhasil dihapus",
+    // STEP 2: Baru hapus barang
+    db.query("DELETE FROM barang WHERE id = ?", [id], (err2) => {
+      if (err2) {
+        console.error(err2);
+        return res.status(500).json({ error: err2.message });
+      }
+
+      res.json({ message: "Barang berhasil dihapus" });
     });
   });
 });
