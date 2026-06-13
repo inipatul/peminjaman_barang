@@ -30,12 +30,10 @@
       </div>
 
       <!-- Data Barang -->
-      <div class="section">
-     <div class="main-content">
+      <div class="main-content">
 
     <div class="section">
-
-        <h2> Data Barang</h2>
+        <h2>Data Barang</h2>
 
         <input id="nama" placeholder="Nama Barang">
         <input id="stok" placeholder="Stok">
@@ -46,12 +44,10 @@
         </button>
 
         <ul id="list"></ul>
-
     </div>
 
     <div class="section">
-
-        <h2> Peminjaman</h2>
+        <h2>Peminjaman</h2>
 
         <input id="nama_peminjam" placeholder="Nama Peminjam">
         <input id="barang_pinjam" placeholder="Nama Barang">
@@ -72,7 +68,7 @@
     <script>
       // API URL - Auto-detect based on environment
       const isDev = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-      const API_URL ="https://peminjamanbarang-production.up.railway.app";
+      const API_URL = isDev ? "http://localhost:3000" : "https://peminjamanbarang-production.up.railway.app";
 
       // =======================
       // UTILITY - SHOW MESSAGE

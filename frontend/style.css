@@ -100,6 +100,108 @@ button:active {
 }
 
 .btn-tambah {
+  background: #27ae60;
+  width: 100%;
+}
+
+.btn-tambah:hover {
+  background: #229954;
+}
+
+.btn-edit {
+  background: #3498db;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+.btn-edit:hover {
+  background: #2980b9;
+}
+
+.btn-hapus {
+  background: #e74c3c;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+.btn-hapus:hover {
+  background: #c0392b;
+}
+
+.btn-kembali {
+  background: #f39c12;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+.btn-kembali:hover {
+  background: #e67e22;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+ul li {
+  background: white;
+  padding: 15px;
+  margin: 10px 0;
+  border-radius: 8px;
+  border-left: 4px solid #3498db;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.status-dipinjam {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+.status-kembali {
+  color: #27ae60;
+  font-weight: bold;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  border-left: 4px solid #3498db;
+}
+
+.card h3 {
+  font-size: 28px;
+  color: #1e293b;
+  margin-bottom: 5px;
+}
+
+.card p {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.card-barang {
+  border-left-color: #3498db;
+}
+
+.card-pinjam {
+  border-left-color: #f39c12;
+}
+
+.card-kembali {
+  border-left-color: #27ae60;
+}
+
+.btn-tambah {
   background: linear-gradient(135deg, #2563eb, #3b82f6);
   width: 100%;
 }
