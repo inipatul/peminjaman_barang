@@ -14,19 +14,20 @@ app.use(express.json());
 // Frontend
 app.use(express.static(path.join(__dirname, "../frontend")));
 
-const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT || 3306,
+const db = mysql.createPool({
+  host: process.env.MYSQLHOST || process.env.DB_HOST,
+  user: process.env.MYSQLUSER || process.env.DB_USER,
+  password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD,
+  database: process.env.MYSQL_DATABASE || process.env.DB_NAME,
+  port: process.env.MYSQLPORT || process.env.DB_PORT || 3306,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
+  connectTimeout: 10000,
 });
 
 function handleConnection() {
-  db.connect((err) => {
+  db.getConnection((err, connection) => {
     if (err) {
       console.error("[ERROR] Database Connection Error:", err.message);
       // Retry connection after 2 seconds
